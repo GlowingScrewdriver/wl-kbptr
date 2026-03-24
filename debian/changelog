@@ -1,0 +1,6 @@
+wl-kbptr (0.4.1-1) UNRELEASED; urgency=low
+
+  * Initial release. Closes: #nnnn
+    <nnnn is the bug number of your ITP>
+
+ -- root <root@localhost>  Tue, 24 Mar 2026 20:43:46 +0000
