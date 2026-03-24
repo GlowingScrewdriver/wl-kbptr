@@ -7,3 +7,4 @@
 #usr/bin
 #usr/sbin
 #usr/share/wl-kbptr
+helpers/wl-kbptr-sway-active-win usr/bin
