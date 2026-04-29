@@ -318,6 +318,7 @@ struct field_def {
     char  *default_value;
     int (*parse)(void *dest, char *value);
     void (*free)(void *value);
+    char *desc;
 };
 
 struct section_def {
@@ -335,7 +336,7 @@ struct section_def {
 
 #define FIELD(type, name, default_value, parse, free)           \
     (struct field_def[]) {                                      \
-        #name, offsetof(type, name), default_value, parse, free \
+        #name, offsetof(type, name), default_value, parse, free, "TODO" \
     }
 
 #define G_FIELD(name, default_value, parse, free) \
@@ -431,7 +432,10 @@ void print_default_config() {
              *field_def_ptr != NULL; field_def_ptr++) {
             struct field_def *field_def = *field_def_ptr;
 
-            printf("%s=%s\n", field_def->name, field_def->default_value);
+            printf(
+                "# %s\n%s=%s\n\n",
+                field_def->desc, field_def->name, field_def->default_value
+            );
         }
     }
 }
