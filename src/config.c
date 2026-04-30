@@ -323,34 +323,36 @@ struct field_def {
 
 struct section_def {
     char              *name;
+    char              *desc;
     size_t             offset;
     struct field_def **fields;
 };
 
-#define SECTION(name, ...)                                             \
+#define SECTION(name, desc, ...)                                       \
     (struct section_def) {                                             \
-        #name, offsetof(struct config, name), (struct field_def *[]) { \
+        #name, desc,                                                   \
+        offsetof(struct config, name), (struct field_def *[]) {        \
             __VA_ARGS__, NULL                                          \
         }                                                              \
     }
 
-#define FIELD(type, name, default_value, parse, free)           \
-    (struct field_def[]) {                                      \
-        #name, offsetof(type, name), default_value, parse, free, "TODO" \
+#define FIELD(type, name, default_value, parse, free, desc)            \
+    (struct field_def[]) {                                             \
+        #name, offsetof(type, name), default_value, parse, free, desc  \
     }
 
-#define G_FIELD(name, default_value, parse, free) \
-    FIELD(struct general_config, name, default_value, parse, free)
-#define MT_FIELD(name, default_value, parse, free) \
-    FIELD(struct mode_tile_config, name, default_value, parse, free)
-#define MF_FIELD(name, default_value, parse, free) \
-    FIELD(struct mode_floating_config, name, default_value, parse, free)
-#define MB_FIELD(name, default_value, parse, free) \
-    FIELD(struct mode_bisect_config, name, default_value, parse, free)
-#define MS_FIELD(name, default_value, parse, free) \
-    FIELD(struct mode_split_config, name, default_value, parse, free)
-#define MC_FIELD(name, default_value, parse, free) \
-    FIELD(struct mode_click_config, name, default_value, parse, free)
+#define G_FIELD(name, default_value, parse, free, desc) \
+    FIELD(struct general_config, name, default_value, parse, free, desc)
+#define MT_FIELD(name, default_value, parse, free, desc) \
+    FIELD(struct mode_tile_config, name, default_value, parse, free, desc)
+#define MF_FIELD(name, default_value, parse, free, desc) \
+    FIELD(struct mode_floating_config, name, default_value, parse, free, desc)
+#define MB_FIELD(name, default_value, parse, free, desc) \
+    FIELD(struct mode_bisect_config, name, default_value, parse, free, desc)
+#define MS_FIELD(name, default_value, parse, free, desc) \
+    FIELD(struct mode_split_config, name, default_value, parse, free, desc)
+#define MC_FIELD(name, default_value, parse, free, desc) \
+    FIELD(struct mode_click_config, name, default_value, parse, free, desc)
 
 static void noop() {}
 
@@ -359,61 +361,189 @@ static void noop() {}
 static struct section_def section_defs[] = {
     SECTION(
         general,
-        G_FIELD(home_row_keys, "", parse_home_row_keys, free_home_row_keys),
-        G_FIELD(modes, "tile,bisect", parse_str, free_str),
-        G_FIELD(cancellation_status_code, "0", parse_uint8, noop)
+        "General configuration",
+        G_FIELD(
+            home_row_keys, "", parse_home_row_keys, free_home_row_keys,
+            "Home row keys"
+        ),
+        G_FIELD(
+            modes, "tile,bisect", parse_str, free_str,
+            "Modes to use"
+        ),
+        G_FIELD(
+            cancellation_status_code, "0", parse_uint8, noop,
+            "Status code to exit with when cancelled"
+        )
     ),
     SECTION(
-        mode_tile, MT_FIELD(label_color, "#fffd", parse_color, noop),
-        MT_FIELD(label_select_color, "#fd0d", parse_color, noop),
-        MT_FIELD(unselectable_bg_color, "#2226", parse_color, noop),
-        MT_FIELD(selectable_bg_color, "#0304", parse_color, noop),
-        MT_FIELD(selectable_border_color, "#040c", parse_color, noop),
-        MT_FIELD(label_font_family, "sans-serif", parse_str, free_str),
-        MT_FIELD(label_font_size, "8 50% 100", parse_relative_font_size, noop),
+        mode_tile,
+        "Configuration for tile mode",
         MT_FIELD(
-            label_symbols, "abcdefghijklmnopqrstuvwxyz", parse_str, free_str
+            label_color, "#fffd", parse_color, noop,
+            "Label color"
+        ),
+        MT_FIELD(
+            label_select_color, "#fd0d", parse_color, noop,
+            "Selected label color"
+        ),
+        MT_FIELD(
+            unselectable_bg_color, "#2226", parse_color, noop,
+            "Background color for unselectable"
+        ),
+        MT_FIELD(
+            selectable_bg_color, "#0304", parse_color, noop,
+            "Background color for selectable"
+        ),
+        MT_FIELD(
+            selectable_border_color, "#040c", parse_color, noop,
+            "Border color for selectable"
+        ),
+        MT_FIELD(
+            label_font_family, "sans-serif", parse_str, free_str,
+            "Font family for label"
+        ),
+        MT_FIELD(
+            label_font_size, "8 50% 100", parse_relative_font_size, noop,
+            "Font size for label"
+        ),
+        MT_FIELD(
+            label_symbols, "abcdefghijklmnopqrstuvwxyz", parse_str, free_str,
+            "Symbols to use for labels"
         )
     ),
     SECTION(
         mode_floating,
-        MF_FIELD(source, "stdin", parse_floating_mode_source_value, noop),
-        MF_FIELD(label_color, "#fffd", parse_color, noop),
-        MF_FIELD(label_select_color, "#fd0d", parse_color, noop),
-        MF_FIELD(unselectable_bg_color, "#2226", parse_color, noop),
-        MF_FIELD(selectable_bg_color, "#1718", parse_color, noop),
-        MF_FIELD(selectable_border_color, "#040c", parse_color, noop),
-        MF_FIELD(label_font_family, "sans-serif", parse_str, free_str),
-        MF_FIELD(label_font_size, "12 50% 100", parse_relative_font_size, noop),
+        "Configuration for floating mode",
         MF_FIELD(
-            label_symbols, "abcdefghijklmnopqrstuvwxyz", parse_str, free_str
+            source, "stdin", parse_floating_mode_source_value, noop,
+            "Source"
+        ),
+        MF_FIELD(
+            label_color, "#fffd", parse_color, noop,
+            "Color of labels"
+        ),
+        MF_FIELD(
+            label_select_color, "#fd0d", parse_color, noop,
+            "Selected label color"
+        ),
+        MF_FIELD(
+            unselectable_bg_color, "#2226", parse_color, noop,
+            "Background color of unselectable"
+        ),
+        MF_FIELD(
+            selectable_bg_color, "#1718", parse_color, noop,
+            "Background color of selectable"
+        ),
+        MF_FIELD(
+            selectable_border_color, "#040c", parse_color, noop,
+            "Border color of selectable"
+        ),
+        MF_FIELD(
+            label_font_family, "sans-serif", parse_str, free_str,
+            "Font family for label"
+        ),
+        MF_FIELD(
+            label_font_size, "12 50% 100", parse_relative_font_size, noop,
+            "Font size for label"
+        ),
+        MF_FIELD(
+            label_symbols, "abcdefghijklmnopqrstuvwxyz", parse_str, free_str,
+            "Symbols to use for labels"
         )
     ),
     SECTION(
-        mode_bisect, MB_FIELD(label_color, "#fffd", parse_color, noop),
+        mode_bisect,
+        "Configuration for bisect mode",
+        MB_FIELD(
+            label_color, "#fffd", parse_color, noop,
+            "Label color"
+        ),
         // TODO: we should set minimums for numbers.
-        MB_FIELD(label_font_size, "20", parse_double, noop),
-        MB_FIELD(label_font_family, "sans-serif", parse_str, free_str),
-        MB_FIELD(label_padding, "12", parse_double, noop),
-        MB_FIELD(pointer_size, "20", parse_double, noop),
-        MB_FIELD(pointer_color, "#e22d", parse_color, noop),
-        MB_FIELD(unselectable_bg_color, "#2226", parse_color, noop),
-        MB_FIELD(even_area_bg_color, "#0304", parse_color, noop),
-        MB_FIELD(even_area_border_color, "#0408", parse_color, noop),
-        MB_FIELD(odd_area_bg_color, "#0034", parse_color, noop),
-        MB_FIELD(odd_area_border_color, "#0048", parse_color, noop),
-        MB_FIELD(history_border_color, "#3339", parse_color, noop)
+        MB_FIELD(
+            label_font_size, "20", parse_double, noop,
+            "Font size for labels"
+        ),
+        MB_FIELD(
+            label_font_family, "sans-serif", parse_str, free_str,
+            "Font family for labels"
+        ),
+        MB_FIELD(
+            label_padding, "12", parse_double, noop,
+            "Padding for labels"
+        ),
+        MB_FIELD(
+            pointer_size, "20", parse_double, noop,
+            "Pointer size"
+        ),
+        MB_FIELD(
+            pointer_color, "#e22d", parse_color, noop,
+            "Pointer color"
+        ),
+        MB_FIELD(
+            unselectable_bg_color, "#2226", parse_color, noop,
+            "Background color for unselectable"
+        ),
+        MB_FIELD(
+            even_area_bg_color, "#0304", parse_color, noop,
+            "Background color for even area"
+        ),
+        MB_FIELD(
+            even_area_border_color, "#0408", parse_color, noop,
+            "Border color for even area"
+        ),
+        MB_FIELD(
+            odd_area_bg_color, "#0034", parse_color, noop,
+            "Background color for odd area"
+        ),
+        MB_FIELD(
+            odd_area_border_color, "#0048", parse_color, noop,
+            "Border color for odd area"
+        ),
+        MB_FIELD(
+            history_border_color, "#3339", parse_color, noop,
+            "Border color for history"
+        )
     ),
     SECTION(
-        mode_split, MS_FIELD(pointer_size, "20", parse_double, noop),
-        MS_FIELD(pointer_color, "#e22d", parse_color, noop),
-        MS_FIELD(bg_color, "#2226", parse_color, noop),
-        MS_FIELD(area_bg_color, "#11111188", parse_color, noop),
-        MS_FIELD(vertical_color, "#8888ffcc", parse_color, noop),
-        MS_FIELD(horizontal_color, "#008800cc", parse_color, noop),
-        MS_FIELD(history_border_color, "#3339", parse_color, noop)
+        mode_split,
+        "Configuration for split mode",
+        MS_FIELD(
+            pointer_size, "20", parse_double, noop,
+            "Pointer size"
+        ),
+        MS_FIELD(
+            pointer_color, "#e22d", parse_color, noop,
+            "Pointer color"
+        ),
+        MS_FIELD(
+            bg_color, "#2226", parse_color, noop,
+            "Background color"
+        ),
+        MS_FIELD(
+            area_bg_color, "#11111188", parse_color, noop,
+            "Background color for area"
+        ),
+        MS_FIELD(
+            vertical_color, "#8888ffcc", parse_color, noop,
+            "Color for vertical marker"
+        ),
+        MS_FIELD(
+            horizontal_color, "#008800cc", parse_color, noop,
+            "Color for horizontal marker"
+        ),
+        MS_FIELD(
+            history_border_color, "#3339", parse_color, noop,
+            "Border color for history"
+        )
     ),
-    SECTION(mode_click, MC_FIELD(button, "left", parse_click, noop)),
+    SECTION(
+        mode_click,
+        "Configuration for click mode",
+        MC_FIELD(
+            button, "left", parse_click, noop,
+            "Mouse button"
+        )
+    ),
 };
 #pragma GCC diagnostic pop
 
@@ -426,7 +556,7 @@ void print_default_config() {
     for (int i = 0; i < sizeof(section_defs) / sizeof(section_defs[0]); i++) {
         struct section_def *section_def = &section_defs[i];
 
-        printf("\n[%s]\n", section_def->name);
+        printf("\n[%s]\n## %s ##\n", section_def->name, section_def->desc);
 
         for (struct field_def **field_def_ptr = section_def->fields;
              *field_def_ptr != NULL; field_def_ptr++) {
